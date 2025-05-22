@@ -52,6 +52,8 @@ import org.matsim.core.config.groups.RoutingConfigGroup;
 import org.matsim.core.config.groups.VspExperimentalConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.network.LinkFactory;
+import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.router.AnalysisMainModeIdentifier;
 import org.matsim.core.scoring.functions.ScoringParametersForPerson;
 import org.matsim.drtFare.KelheimDrtFareModule;
@@ -68,6 +70,7 @@ import org.matsim.contrib.vsp.pt.fare.PtFareConfigGroup;
 import playground.vsp.scoring.IncomeDependentUtilityOfMoneyPersonScoringParameters;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.SplittableRandom;
@@ -284,6 +287,8 @@ public class RunKelheimScenario extends MATSimApplication {
 			}
 		}
 
+		modifyNetwork(scenario.getNetwork());
+
 	}
 
 	@Override
@@ -381,5 +386,34 @@ public class RunKelheimScenario extends MATSimApplication {
 			//estimatorConfig.addParameterSet(new DrtEstimatorConfigGroup("av"));
 
 		}
+	}
+
+	protected void modifyNetwork(Network network) {
+		for (Link link : network.getLinks().values()) {
+			 String[] ids = {
+				 "-830829241",
+				 "24744482#2",
+				 "-974548442",
+				 "161285417",
+				 "-8599673",
+				 "8599673",
+				 "-585581112",
+				 "23987639",
+				 "-27575929",
+				 "167639282"
+			 };
+
+			 if (Arrays.asList(ids).contains(link.getId().toString())) {
+				 Set<String> modes = link.getAllowedModes();
+				 modes.remove("car");
+				 modes.remove("freight");
+				 link.setAllowedModes(modes);
+			 };
+		}
+		NetworkUtils.getNodes()
+
+		Link newLink = NetworkUtils.createAndAddLink(network, Id.createLinkId("26766493"), "cluster_297320290_302358011", "6405118642", 80, 5, 1200, 1, NetworkUtils.ORIGID, "highway.footway");
+
+		network.addLink();
 	}
 }
