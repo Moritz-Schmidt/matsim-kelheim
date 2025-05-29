@@ -394,28 +394,32 @@ public class RunKelheimScenario extends MATSimApplication {
 
 	protected void modifyNetwork(Network network, Population population) {
 		String[] ids = {
-			 "-830829241",
-			 "24744482#2",
-			 "-974548442",
-			 "161285417",
-			 "-8599673",
-			 "8599673",
-			 "-585581112",
-			 "23987639",
-			 "-27575929",
-			 "167639282"
+			"-830829241",
+			"24744482#2",
+			"-974548442",
+			"161285417",
+			"-8599673",
+			"8599673",
+			"-585581112",
+			"23987639",
+			"-27575929",
+			"167639282",
+			"318235724",
+			"-11810468"
 		};
 
 		for (Link link : network.getLinks().values()) {
-			 if (Arrays.asList(ids).contains(link.getId().toString())) {
-				 Set<String> modes = link.getAllowedModes();
-				 Set<String> newModes = Sets.newHashSet(modes);
-				 newModes.remove("car");
-				 newModes.remove("freight");
-				 link.setAllowedModes(newModes);
-			 };
+			if (Arrays.asList(ids).contains(link.getId().toString())) {
+				Set<String> modes = link.getAllowedModes();
+				Set<String> newModes = Sets.newHashSet(modes);
+				newModes.remove("car");
+				newModes.remove("freight");
+				link.setAllowedModes(newModes);
+			};
 		}
 
+		// Useless, since walk and bikes just teleport.
+		/*
 		List<Node> fromNodes = NetworkUtils.getNodes(network, "cluster_297320290_302358011");
 		Node fromNode = fromNodes.getFirst();
 
@@ -429,6 +433,7 @@ public class RunKelheimScenario extends MATSimApplication {
 		Link newLinkReverse = NetworkUtils.createAndAddLink(network, Id.createLinkId("-26766493"), toNode, fromNode, 80, 5, 1200, 1, NetworkUtils.ORIGID, "highway.footway");
 		newLinkReverse.setAllowedModes(Sets.newHashSet("walk", "bike"));
 		log.info("Added link {}", newLinkReverse.getId());
+		 */
 
 		PopulationUtils.checkRouteModeAndReset(population, network);
 	}
