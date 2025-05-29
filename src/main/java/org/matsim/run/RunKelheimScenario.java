@@ -3,6 +3,8 @@ package org.matsim.run;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.analysis.KelheimMainModeIdentifier;
 import org.matsim.analysis.ModeChoiceCoverageControlerListener;
 import org.matsim.analysis.personMoney.PersonMoneyEventsAnalysisModule;
@@ -16,6 +18,7 @@ import org.matsim.api.core.v01.events.PersonScoreEvent;
 import org.matsim.api.core.v01.events.handler.PersonDepartureEventHandler;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.application.MATSimApplication;
@@ -26,6 +29,7 @@ import org.matsim.application.prepare.CreateLandUseShp;
 import org.matsim.application.prepare.freight.tripExtraction.ExtractRelevantFreightTrips;
 import org.matsim.application.prepare.network.CreateNetworkFromSumo;
 import org.matsim.application.prepare.population.*;
+import org.matsim.application.prepare.population.CleanPopulation;
 import org.matsim.application.prepare.pt.CreateTransitScheduleFromGtfs;
 import org.matsim.contrib.drt.extension.DrtWithExtensionsConfigGroup;
 import org.matsim.contrib.drt.extension.companions.DrtCompanionParams;
@@ -52,6 +56,9 @@ import org.matsim.core.config.groups.RoutingConfigGroup;
 import org.matsim.core.config.groups.VspExperimentalConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.network.LinkFactory;
+import org.matsim.core.network.NetworkUtils;
+import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.router.AnalysisMainModeIdentifier;
 import org.matsim.core.scoring.functions.ScoringParametersForPerson;
 import org.matsim.drtFare.KelheimDrtFareModule;
@@ -68,9 +75,7 @@ import org.matsim.contrib.vsp.pt.fare.PtFareConfigGroup;
 import playground.vsp.scoring.IncomeDependentUtilityOfMoneyPersonScoringParameters;
 
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Set;
-import java.util.SplittableRandom;
+import java.util.*;
 
 @CommandLine.Command(header = ":: Open Kelheim Scenario ::", version = RunKelheimScenario.VERSION, mixinStandardHelpOptions = true)
 @MATSimApplication.Prepare({
@@ -82,6 +87,8 @@ import java.util.SplittableRandom;
 	LinkStats.class, CheckPopulation.class, DrtServiceQualityAnalysis.class, DrtVehiclesRoadUsageAnalysis.class
 })
 public class RunKelheimScenario extends MATSimApplication {
+
+	private static final Logger log = LogManager.getLogger(RunKelheimScenario.class);
 
 	public static final String VERSION = "3.1";
 	private static final double WEIGHT_1_PASSENGER = 22235.;
@@ -284,6 +291,8 @@ public class RunKelheimScenario extends MATSimApplication {
 			}
 		}
 
+		modifyNetwork(scenario.getNetwork(), scenario.getPopulation());
+
 	}
 
 	@Override
@@ -381,5 +390,51 @@ public class RunKelheimScenario extends MATSimApplication {
 			//estimatorConfig.addParameterSet(new DrtEstimatorConfigGroup("av"));
 
 		}
+	}
+
+	protected void modifyNetwork(Network network, Population population) {
+		String[] ids = {
+			"-830829241",
+			"24744482#2",
+			"-974548442",
+			"161285417",
+			"-8599673",
+			"8599673",
+			"-585581112",
+			"23987639",
+			"-27575929",
+			"167639282",
+			"318235724",
+			"-11810468"
+		};
+
+		for (Link link : network.getLinks().values()) {
+			if (Arrays.asList(ids).contains(link.getId().toString())) {
+				Set<String> modes = link.getAllowedModes();
+				Set<String> newModes = Sets.newHashSet(modes);
+				newModes.remove("car");
+				newModes.remove("freight");
+				link.setAllowedModes(newModes);
+			};
+		}
+
+		// Useless, since walk and bikes just teleport.
+		/*
+		List<Node> fromNodes = NetworkUtils.getNodes(network, "cluster_297320290_302358011");
+		Node fromNode = fromNodes.getFirst();
+
+		List<Node> toNodes = NetworkUtils.getNodes(network, "6405118642");
+		Node toNode = toNodes.getFirst();
+
+		Link newLink = NetworkUtils.createAndAddLink(network, Id.createLinkId("26766493"), fromNode, toNode, 80, 5, 1200, 1, NetworkUtils.ORIGID, "highway.footway");
+		newLink.setAllowedModes(Sets.newHashSet("walk", "bike"));
+		log.info("Added link {}", newLink.getId());
+
+		Link newLinkReverse = NetworkUtils.createAndAddLink(network, Id.createLinkId("-26766493"), toNode, fromNode, 80, 5, 1200, 1, NetworkUtils.ORIGID, "highway.footway");
+		newLinkReverse.setAllowedModes(Sets.newHashSet("walk", "bike"));
+		log.info("Added link {}", newLinkReverse.getId());
+		 */
+
+		PopulationUtils.checkRouteModeAndReset(population, network);
 	}
 }
