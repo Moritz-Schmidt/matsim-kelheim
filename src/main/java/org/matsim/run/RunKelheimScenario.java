@@ -393,6 +393,11 @@ public class RunKelheimScenario extends MATSimApplication {
 	}
 
 	protected void modifyNetwork(Network network, Population population) {
+		/*
+		This function disables the "car" and "freight" modes on bridge links in Kelheim.
+		It is used to simulate the effects of unexpected bridge closures on traffic patterns, reflecting real-world infrastructure disruptions.
+		*/
+
 		String[] ids = {
 			"-830829241",
 			"24744482#2",
@@ -415,25 +420,8 @@ public class RunKelheimScenario extends MATSimApplication {
 				newModes.remove("car");
 				newModes.remove("freight");
 				link.setAllowedModes(newModes);
-			};
+			}
 		}
-
-		// Useless, since walk and bikes just teleport.
-		/*
-		List<Node> fromNodes = NetworkUtils.getNodes(network, "cluster_297320290_302358011");
-		Node fromNode = fromNodes.getFirst();
-
-		List<Node> toNodes = NetworkUtils.getNodes(network, "6405118642");
-		Node toNode = toNodes.getFirst();
-
-		Link newLink = NetworkUtils.createAndAddLink(network, Id.createLinkId("26766493"), fromNode, toNode, 80, 5, 1200, 1, NetworkUtils.ORIGID, "highway.footway");
-		newLink.setAllowedModes(Sets.newHashSet("walk", "bike"));
-		log.info("Added link {}", newLink.getId());
-
-		Link newLinkReverse = NetworkUtils.createAndAddLink(network, Id.createLinkId("-26766493"), toNode, fromNode, 80, 5, 1200, 1, NetworkUtils.ORIGID, "highway.footway");
-		newLinkReverse.setAllowedModes(Sets.newHashSet("walk", "bike"));
-		log.info("Added link {}", newLinkReverse.getId());
-		 */
 
 		PopulationUtils.checkRouteModeAndReset(population, network);
 	}
